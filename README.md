@@ -1,180 +1,334 @@
-# Terraform Enterprise Infrastructure (Modules + Environments: dev/staging/prod)
+<p align="center">
+  <img src="docs/architecture.png" width="800">
+</p>
 
-**Version:** v1.0.0 (Generated 2026-02-14)
+<h1 align="center">
+Terraform Enterprise Infrastructure
+</h1>
 
-A production-style Terraform repository that demonstrates how to build **reusable modules** and deploy them into **multiple environments** (dev, staging, prod) using consistent naming, tagging, and state isolation.
+<p align="center">
+Reusable Modules • Multi-Environment • Production-Grade Architecture
+</p>
 
-This repo provisions a realistic baseline platform on AWS:
-- Networking (**VPC**, subnets, NAT)
-- Compute layer (**EKS** optional module included)
-- Data layer (**RDS** optional module included)
-- Security/IAM baseline (**KMS**, IAM roles/policies, security groups)
-- Environment separation (**dev / staging / prod**) with isolated state backends
+<p align="center">
 
----
+<img src="https://img.shields.io/badge/Cloud-AWS-orange?style=for-the-badge&logo=amazonaws">
+<img src="https://img.shields.io/badge/IaC-Terraform-purple?style=for-the-badge&logo=terraform">
+<img src="https://img.shields.io/badge/Environments-dev%20%7C%20staging%20%7C%20prod-blue?style=for-the-badge">
+<img src="https://img.shields.io/badge/State-Remote-green?style=for-the-badge">
+<img src="https://img.shields.io/badge/Architecture-Enterprise-red?style=for-the-badge">
+<img src="https://img.shields.io/badge/Status-Production--Ready-brightgreen?style=for-the-badge">
 
-## Architecture
-
-![Architecture](docs/architecture.png)
-
-### Key concepts
-- **Modules** are reusable building blocks (`modules/vpc`, `modules/eks`, `modules/rds`, `modules/iam`).
-- **Environments** use modules with different parameters (`environments/dev`, `environments/staging`, `environments/prod`).
-- **Remote state** (S3 + DynamoDB) prevents conflicts and enables team workflows.
-- **Consistent tags** and naming make cost allocation and governance easier.
+</p>
 
 ---
 
-## Repository Layout
+# Overview
 
-```text
+This repository demonstrates a **production-grade Terraform enterprise infrastructure architecture** using:
+
+- Reusable Terraform modules
+- Multi-environment deployment
+- Remote state management with locking
+- Enterprise security and IAM baseline
+- Scalable and maintainable infrastructure design
+
+This mirrors how **real companies manage AWS infrastructure safely and at scale**.
+
+---
+
+# Architecture
+
+<p align="center">
+  <img src="docs/architecture.png" width="900">
+</p>
+
+---
+
+# Enterprise Infrastructure Components
+
+## Core Infrastructure
+
+- VPC with public and private subnets
+- NAT Gateway
+- IAM roles and policies
+- KMS encryption keys
+- Security group baseline
+- Remote state backend
+
+## Optional Infrastructure
+
+- EKS Kubernetes cluster
+- RDS managed database
+
+---
+
+# Enterprise Design Principles
+
+## 1. Modular Architecture
+
+Reusable modules:
+
+```
+modules/
+├── vpc/
+├── eks/
+├── rds/
+└── iam/
+```
+
+Benefits:
+
+- Reusable infrastructure
+- Easier maintenance
+- Enterprise standardization
+
+---
+
+## 2. Environment Isolation
+
+Separate environments:
+
+```
+environments/
+├── dev/
+├── staging/
+└── prod/
+```
+
+Each environment has:
+
+- Separate Terraform state
+- Separate configuration
+- Separate infrastructure
+
+Prevents production impact from dev/testing.
+
+---
+
+## 3. Remote State Management
+
+Uses:
+
+- S3 for state storage
+- DynamoDB for state locking
+
+Benefits:
+
+- Safe team collaboration
+- Prevents state corruption
+- Enterprise-grade workflow
+
+---
+
+# Repository Structure
+
+```
 terraform-enterprise-infrastructure/
+│
 ├── modules/
 │   ├── vpc/
 │   ├── eks/
 │   ├── rds/
 │   └── iam/
+│
 ├── environments/
 │   ├── dev/
 │   ├── staging/
 │   └── prod/
+│
 ├── bootstrap/
-│   ├── backend/                    # creates S3 + DynamoDB for remote state
-│   └── README.md
+│   └── backend/
+│
 └── docs/
     └── architecture.png
 ```
 
 ---
 
-## Prerequisites
+# Prerequisites
+
+Required tools:
 
 - Terraform >= 1.6
 - AWS CLI v2
-- AWS account with permissions to create:
-  - S3, DynamoDB, IAM, VPC, EKS (optional), RDS (optional)
-- A workstation with access to your AWS credentials (SSO or IAM role)
+- AWS account
+- AWS credentials configured
 
-Verify access:
-```bash
+Verify authentication:
+
+```
 aws sts get-caller-identity
 ```
 
 ---
 
-## Step 0 — Bootstrap remote state (recommended)
+# Deployment Guide
 
-Before running environments, create a remote state backend so each environment has isolated state.
+---
 
-### 0.1 Deploy backend (S3 + DynamoDB)
-```bash
+## Step 1 — Bootstrap Remote State
+
+Creates:
+
+- Terraform state bucket
+- Lock table
+
+```
 cd bootstrap/backend
+
 terraform init
+
 terraform apply -auto-approve
 ```
 
-### 0.2 Use backend outputs
-Terraform outputs:
-- `state_bucket_name`
-- `lock_table_name`
-
-You will use these values in environment `backend.tf` files.
-
 ---
 
-## Step 1 — Deploy DEV environment
+## Step 2 — Deploy DEV
 
-### 1.1 Configure backend for DEV
-Edit:
-- `environments/dev/backend.tf`
-
-Paste:
-- `bucket = "<state_bucket_name>"`
-- `dynamodb_table = "<lock_table_name>"`
-
-### 1.2 Initialize and apply
-```bash
+```
 cd environments/dev
+
 terraform init
+
 terraform apply -auto-approve
 ```
 
 ---
 
-## Step 2 — Deploy STAGING and PROD
+## Step 3 — Deploy STAGING
 
-Repeat for each environment:
-
-```bash
+```
 cd environments/staging
+
 terraform init
+
 terraform apply -auto-approve
 ```
 
-```bash
+---
+
+## Step 4 — Deploy PROD
+
+```
 cd environments/prod
+
 terraform init
+
 terraform apply -auto-approve
 ```
 
 ---
 
-## What gets deployed by default?
+# Enable Optional Infrastructure
 
-By default, each environment deploys:
-- VPC with public/private subnets + NAT
-- KMS key
-- IAM baseline role
-- Security group baseline
+Enable EKS:
 
-Optional modules (toggle by variables):
-- EKS cluster
-- RDS database
-
----
-
-## Enabling optional modules
-
-### Enable EKS
-In an environment `terraform.tfvars`:
-```hcl
+```
 enable_eks = true
 ```
 
-### Enable RDS
-```hcl
+Enable RDS:
+
+```
 enable_rds = true
+
 db_username = "admin"
-db_password = "replace-with-strong-password"
+db_password = "secure-password"
 ```
 
 ---
 
-## Outputs you care about
-- VPC ID, subnet IDs
-- KMS key ARN
-- EKS cluster name/endpoint (if enabled)
-- RDS endpoint (if enabled)
+# Outputs
+
+Example outputs:
+
+- VPC ID
+- Subnet IDs
+- EKS Cluster Endpoint
+- RDS Endpoint
+- KMS Key ARN
 
 ---
 
-## Cleanup
-Destroy an environment:
-```bash
+# Destroy Infrastructure
+
+Destroy environment:
+
+```
 cd environments/dev
+
 terraform destroy -auto-approve
 ```
 
-Destroy backend (only after all envs are destroyed):
-```bash
+Destroy backend:
+
+```
 cd bootstrap/backend
+
 terraform destroy -auto-approve
 ```
 
 ---
 
-## Next “FAANG-level” improvements
-- Add Atlantis or Terraform Cloud workflows
-- Add policy-as-code (OPA/Sentinel)
-- Add unit tests (terraform validate + tflint + checkov)
-- Add cost controls (Budgets, tags enforcement)
+# Enterprise Best Practices Demonstrated
+
+Infrastructure as Code  
+Modular architecture  
+Environment isolation  
+Remote state locking  
+Enterprise repository structure  
+Secure IAM baseline  
+
+---
+
+# Real-World Use Cases
+
+This architecture is used by:
+
+- Enterprises running production workloads
+- DevOps teams managing multi-environment infrastructure
+- Platform engineering teams
+- Kubernetes platform teams
+
+---
+
+# Future Improvements
+
+Add CI/CD:
+
+- GitHub Actions
+- Atlantis
+- Terraform Cloud
+
+Add security scanning:
+
+- Checkov
+- tfsec
+- OPA / Sentinel
+
+Add testing:
+
+```
+terraform validate
+terraform fmt
+tflint
+```
+
+---
+
+# Author
+
+**Olusegun Mayungbe**
+
+DevOps Engineer  
+Cloud Infrastructure • Kubernetes • Terraform • AWS  
+
+GitHub: https://github.com/Oluadepe
+LinkedIn: https://linkedin.com/in/molusegun
+---
+
+# Portfolio Purpose
+
+This project demonstrates **enterprise-level Terraform infrastructure design used in real production environments.**
+
