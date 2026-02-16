@@ -324,8 +324,8 @@ tflint
 DevOps Engineer  
 Cloud Infrastructure • Kubernetes • Terraform • AWS  
 
-GitHub: https://github.com/Oluadepe
-LinkedIn: https://linkedin.com/in/molusegun
+GitHub: https://github.com/oluadepe
+LinkedIn: https://linkedin.com/in/molusegun  
 ---
 
 # Portfolio Purpose
