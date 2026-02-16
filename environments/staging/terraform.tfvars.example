@@ -1,0 +1,11 @@
+region      = "us-east-1"
+project     = "tf-enterprise"
+environment = "staging"
+
+# Optional toggles:
+enable_eks = false
+enable_rds = false
+
+# Only needed if enable_rds=true:
+db_username = "admin"
+db_password = "REPLACE_WITH_STRONG_PASSWORD"
